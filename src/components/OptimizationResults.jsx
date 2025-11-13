@@ -100,30 +100,66 @@ function OptimizationResults() {
       )}
       
       {/* Métricas */}
-      <div className="grid grid-cols-2 gap-4">
-        <div className="bg-blue-50 p-4 rounded-lg">
-          <p className="text-sm text-gray-600">Eficiencia</p>
-          <p className="text-3xl font-bold text-blue-600">
-            {results.efficiency?.toFixed(1) || 0}%
-          </p>
+      <div className="space-y-4">
+        <h3 className="text-lg font-semibold text-gray-800">Métricas de Optimización</h3>
+        
+        {/* Métricas principales - Porcentajes */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div className="bg-blue-50 p-4 rounded-lg border-l-4 border-blue-500">
+            <p className="text-xs text-gray-600 mb-1">Eficiencia de Volumen</p>
+            <p className="text-2xl font-bold text-blue-600">
+              {results.efficiency?.toFixed(1) || results.volume_coverage_percentage?.toFixed(1) || 0}%
+            </p>
+            <p className="text-xs text-gray-500 mt-1">
+              Volumen usado del contenedor
+            </p>
+          </div>
+          
+          <div className="bg-green-50 p-4 rounded-lg border-l-4 border-green-500">
+            <p className="text-xs text-gray-600 mb-1">Superficie Cubierta</p>
+            <p className="text-2xl font-bold text-green-600">
+              {results.surface_coverage_percentage?.toFixed(1) || 0}%
+            </p>
+            <p className="text-xs text-gray-500 mt-1">
+              Área base ocupada
+            </p>
+          </div>
+          
+          <div className="bg-purple-50 p-4 rounded-lg border-l-4 border-purple-500">
+            <p className="text-xs text-gray-600 mb-1">Volumen Libre</p>
+            <p className="text-2xl font-bold text-purple-600">
+              {results.volume_free_percentage?.toFixed(1) || 0}%
+            </p>
+            <p className="text-xs text-gray-500 mt-1">
+              Espacio disponible
+            </p>
+          </div>
+          
+          <div className="bg-orange-50 p-4 rounded-lg border-l-4 border-orange-500">
+            <p className="text-xs text-gray-600 mb-1">Peso Total</p>
+            <p className="text-2xl font-bold text-orange-600">
+              {totalWeight.toFixed(2)} kg
+            </p>
+            <p className="text-xs text-gray-500 mt-1">
+              Peso de todos los items
+            </p>
+          </div>
         </div>
-        <div className="bg-green-50 p-4 rounded-lg">
-          <p className="text-sm text-gray-600">Volumen usado</p>
-          <p className="text-3xl font-bold text-green-600">
-            {results.used_volume?.toFixed(2) || 0} m³
-          </p>
-        </div>
-        <div className="bg-purple-50 p-4 rounded-lg">
-          <p className="text-sm text-gray-600">Volumen libre</p>
-          <p className="text-3xl font-bold text-purple-600">
-            {results.free_volume?.toFixed(2) || 0} m³
-          </p>
-        </div>
-        <div className="bg-orange-50 p-4 rounded-lg">
-          <p className="text-sm text-gray-600">Peso total</p>
-          <p className="text-3xl font-bold text-orange-600">
-            {totalWeight.toFixed(2)} kg
-          </p>
+        
+        {/* Métricas detalladas - Valores absolutos */}
+        <div className="grid grid-cols-2 gap-4">
+          <div className="bg-gray-50 p-3 rounded-lg">
+            <p className="text-sm text-gray-600">Volumen Usado</p>
+            <p className="text-xl font-semibold text-gray-800">
+              {results.used_volume?.toFixed(2) || 0} m³
+            </p>
+          </div>
+          <div className="bg-gray-50 p-3 rounded-lg">
+            <p className="text-sm text-gray-600">Volumen Libre</p>
+            <p className="text-xl font-semibold text-gray-800">
+              {results.free_volume?.toFixed(2) || 0} m³
+            </p>
+          </div>
         </div>
       </div>
 
