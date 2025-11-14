@@ -20,6 +20,7 @@ const useStore = create((set, get) => ({
   error: null,
   selectedItem: null, // Item seleccionado en el 3D
   useMathematicalCalculator: true, // Toggle para usar calculador matemático (por defecto activado)
+  fillFloorWithPallets: false, // Toggle para llenar el piso con pallets estratégicamente
   progress: {
     message: '',
     percentage: 0,
@@ -70,6 +71,11 @@ const useStore = create((set, get) => ({
     set({ useMathematicalCalculator: value })
   },
 
+  // Toggle llenar piso con pallets
+  setFillFloorWithPallets: (value) => {
+    set({ fillFloorWithPallets: value })
+  },
+
   // Validar que productos caben en contenedor
   validateProductsFit: () => {
     const { products, selectedContainer, containers } = get()
@@ -112,7 +118,7 @@ const useStore = create((set, get) => ({
 
   // Calcular optimización con progreso usando SSE
   calculateOptimization: async () => {
-    const { products, selectedContainer, useMathematicalCalculator } = get()
+    const { products, selectedContainer, useMathematicalCalculator, fillFloorWithPallets } = get()
     
     if (products.length === 0) {
       set({ error: 'Debes agregar al menos un producto' })
@@ -143,14 +149,16 @@ const useStore = create((set, get) => ({
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          products: products.map(({ id, length, width, height, weight, name, priority }) => ({
+          products: products.map(({ id, length, width, height, weight, name, priority, requires_pallet }) => ({
             name: name,
             dimensions: [length, width, height],
             weight: weight,
             priority: priority || 1,
+            requires_pallet: requires_pallet || false,
           })),
           container: selectedContainer,
           use_mathematical_calculator: useMathematicalCalculator,
+          fill_floor_with_pallets: fillFloorWithPallets || false,
         }),
       })
 

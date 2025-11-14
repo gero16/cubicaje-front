@@ -1,7 +1,9 @@
 import { Canvas } from '@react-three/fiber'
 import { OrbitControls, Text, Line } from '@react-three/drei'
 import { useStore } from '../store/store'
-import { useMemo } from 'react'
+import { useMemo, useRef, useEffect } from 'react'
+import { useFrame } from '@react-three/fiber'
+import * as THREE from 'three'
 
 // Función para obtener el color de un item basado en su índice
 function getItemColor(index) {
@@ -25,9 +27,53 @@ function getItemColor(index) {
 }
 
 // Componente para una caja individual
-function Box({ position, dimensions, color, name, index, onClick }) {
+function Box({ position, dimensions, color, name, index, onClick, isPallet }) {
   const [x, y, z] = position
   const [length, height, width] = dimensions
+  
+  // Si es un pallet, usar estilo wireframe y color marrón
+  if (isPallet) {
+    return (
+      <group>
+        <mesh
+          position={[x + length / 2, y + height / 2, z + width / 2]}
+          onClick={onClick}
+          onPointerOver={(e) => {
+            e.stopPropagation()
+            document.body.style.cursor = 'pointer'
+          }}
+          onPointerOut={(e) => {
+            document.body.style.cursor = 'default'
+          }}
+        >
+          <boxGeometry args={[length, height, width]} />
+          <meshStandardMaterial 
+            color="#8B4513" 
+            opacity={0.6} 
+            transparent 
+            wireframe={false}
+          />
+        </mesh>
+        {/* Mostrar estructura del pallet con líneas */}
+        <Line
+          points={[
+            [x, y, z],
+            [x + length, y, z],
+            [x + length, y, z + width],
+            [x, y, z + width],
+            [x, y, z],
+            [x, y + height, z],
+            [x + length, y + height, z],
+            [x + length, y + height, z + width],
+            [x, y + height, z + width],
+            [x, y + height, z],
+          ]}
+          color="#654321"
+          lineWidth={2}
+        />
+      </group>
+    )
+  }
   
   return (
     <mesh
@@ -227,8 +273,150 @@ function Rulers({ dimensions }) {
   )
 }
 
+// Componente para controles de cámara con teclado
+function KeyboardControls({ controlsRef, containerRef }) {
+  const moveSpeed = 0.5
+  const keys = useRef({})
+  const isMouseOverCanvas = useRef(false)
+  
+  useEffect(() => {
+    const handleMouseEnter = () => {
+      isMouseOverCanvas.current = true
+    }
+    
+    const handleMouseLeave = () => {
+      isMouseOverCanvas.current = false
+    }
+    
+    const container = containerRef?.current
+    if (container) {
+      container.addEventListener('mouseenter', handleMouseEnter)
+      container.addEventListener('mouseleave', handleMouseLeave)
+      
+      return () => {
+        container.removeEventListener('mouseenter', handleMouseEnter)
+        container.removeEventListener('mouseleave', handleMouseLeave)
+      }
+    }
+  }, [containerRef])
+  
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      const key = e.key.toLowerCase()
+      const isWASD = ['w', 'a', 's', 'd', 'q', 'e'].includes(key)
+      const isArrowKey = e.key.startsWith('Arrow')
+      const isPageKey = e.key === 'PageUp' || e.key === 'PageDown'
+      
+      // Si es una tecla de cámara
+      if (isWASD || isArrowKey || isPageKey) {
+        // Siempre prevenir comportamiento por defecto para evitar scroll de página
+        e.preventDefault()
+        e.stopPropagation()
+      }
+      
+      // Manejar teclas especiales
+      if (e.key === 'ArrowUp') keys.current['arrowup'] = true
+      else if (e.key === 'ArrowDown') keys.current['arrowdown'] = true
+      else if (e.key === 'ArrowLeft') keys.current['arrowleft'] = true
+      else if (e.key === 'ArrowRight') keys.current['arrowright'] = true
+      else if (e.key === 'PageUp') keys.current['pageup'] = true
+      else if (e.key === 'PageDown') keys.current['pagedown'] = true
+      else keys.current[key] = true
+    }
+    
+    const handleKeyUp = (e) => {
+      const key = e.key.toLowerCase()
+      const isWASD = ['w', 'a', 's', 'd', 'q', 'e'].includes(key)
+      const isArrowKey = e.key.startsWith('Arrow')
+      const isPageKey = e.key === 'PageUp' || e.key === 'PageDown'
+      
+      // Si es una tecla de cámara
+      if (isWASD || isArrowKey || isPageKey) {
+        // Siempre prevenir comportamiento por defecto para evitar scroll de página
+        e.preventDefault()
+        e.stopPropagation()
+      }
+      
+      // Manejar teclas especiales
+      if (e.key === 'ArrowUp') keys.current['arrowup'] = false
+      else if (e.key === 'ArrowDown') keys.current['arrowdown'] = false
+      else if (e.key === 'ArrowLeft') keys.current['arrowleft'] = false
+      else if (e.key === 'ArrowRight') keys.current['arrowright'] = false
+      else if (e.key === 'PageUp') keys.current['pageup'] = false
+      else if (e.key === 'PageDown') keys.current['pagedown'] = false
+      else keys.current[key] = false
+    }
+    
+    // Usar capture phase para interceptar antes que otros handlers
+    window.addEventListener('keydown', handleKeyDown, true)
+    window.addEventListener('keyup', handleKeyUp, true)
+    
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown, true)
+      window.removeEventListener('keyup', handleKeyUp, true)
+    }
+  }, [containerRef])
+  
+  useFrame(() => {
+    if (!controlsRef.current) return
+    
+    const controls = controlsRef.current
+    const moveVector = new THREE.Vector3()
+    
+    // Movimiento con WASD o flechas
+    if (keys.current['w'] || keys.current['arrowup']) {
+      moveVector.z -= moveSpeed
+    }
+    if (keys.current['s'] || keys.current['arrowdown']) {
+      moveVector.z += moveSpeed
+    }
+    if (keys.current['a'] || keys.current['arrowleft']) {
+      moveVector.x -= moveSpeed
+    }
+    if (keys.current['d'] || keys.current['arrowright']) {
+      moveVector.x += moveSpeed
+    }
+    
+    // Movimiento vertical con Q/E o PageUp/PageDown
+    if (keys.current['q'] || keys.current['pageup']) {
+      moveVector.y += moveSpeed
+    }
+    if (keys.current['e'] || keys.current['pagedown']) {
+      moveVector.y -= moveSpeed
+    }
+    
+    if (moveVector.length() > 0) {
+      // Aplicar movimiento relativo a la orientación de la cámara
+      const camera = controls.object
+      const direction = new THREE.Vector3()
+      
+      // Movimiento horizontal relativo a la cámara
+      camera.getWorldDirection(direction)
+      const right = new THREE.Vector3()
+      right.crossVectors(direction, camera.up).normalize()
+      
+      const forward = new THREE.Vector3()
+      forward.crossVectors(right, camera.up).normalize()
+      
+      // Aplicar movimiento
+      camera.position.add(right.multiplyScalar(moveVector.x))
+      camera.position.add(forward.multiplyScalar(moveVector.z))
+      camera.position.y += moveVector.y
+      
+      // Actualizar el target de OrbitControls
+      controls.target.add(right.multiplyScalar(moveVector.x))
+      controls.target.add(forward.multiplyScalar(moveVector.z))
+      controls.target.y += moveVector.y
+    }
+  })
+  
+  return null
+}
+
 function Container3DView({ results }) {
   const { selectItem, containers, selectedContainer } = useStore()
+  const controlsRef = useRef()
+  const containerRef = useRef()
   
   if (!results || !results.items || results.items.length === 0) {
     return (
@@ -244,7 +432,18 @@ function Container3DView({ results }) {
     : [12.19, 2.44, 2.59]
   
   return (
-    <div className="w-full h-full">
+    <div ref={containerRef} className="w-full h-full relative">
+      {/* Instrucciones de controles */}
+      <div className="absolute top-2 left-2 bg-black/70 text-white text-xs p-2 rounded z-10 pointer-events-none">
+        <div className="font-semibold mb-1">Controles de Cámara:</div>
+        <div>🖱️ Click + arrastrar: Rotar</div>
+        <div>🖱️ Click derecho + arrastrar: Desplazar</div>
+        <div>🖱️ Rueda: Zoom</div>
+        <div className="mt-1 font-semibold">Teclado (sobre el canvas):</div>
+        <div>WASD / ↑↓←→: Desplazar horizontal</div>
+        <div>Q/E / PgUp/PgDn: Subir/Bajar</div>
+      </div>
+      
       <Canvas
         camera={{ position: [15, 10, 15], fov: 50 }}
         style={{ width: '100%', height: '100%' }}
@@ -257,7 +456,8 @@ function Container3DView({ results }) {
         <Rulers dimensions={containerDims} />
         
         {results.items.map((item, index) => {
-          const color = getItemColor(index)
+          const isPallet = item.type === 'pallet' || item.name?.startsWith('Pallet_')
+          const color = isPallet ? '#8B4513' : getItemColor(index)
           const position = item.position || [0, 0, 0]
           const dimensions = item.dimensions || [1, 1, 1]
           
@@ -269,12 +469,14 @@ function Container3DView({ results }) {
               color={color}
               name={item.name}
               index={index}
+              isPallet={isPallet}
               onClick={() => {
                 selectItem({
                   id: index,
                   name: item.name,
                   color: color,
-                  realDimensions: dimensions
+                  realDimensions: dimensions,
+                  isPallet: isPallet
                 })
               }}
             />
@@ -282,12 +484,23 @@ function Container3DView({ results }) {
         })}
         
         <OrbitControls
+          ref={controlsRef}
           enablePan={true}
           enableZoom={true}
           enableRotate={true}
-          minDistance={5}
-          maxDistance={50}
+          minDistance={3}
+          maxDistance={100}
+          panSpeed={1.5}
+          zoomSpeed={1.2}
+          rotateSpeed={0.8}
+          mouseButtons={{
+            LEFT: THREE.MOUSE.ROTATE,
+            MIDDLE: THREE.MOUSE.DOLLY,
+            RIGHT: THREE.MOUSE.PAN
+          }}
         />
+        
+        <KeyboardControls controlsRef={controlsRef} containerRef={containerRef} />
         
         <gridHelper args={[20, 20, '#888', '#ccc']} />
       </Canvas>

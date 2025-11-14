@@ -16,6 +16,7 @@ function ProductForm() {
       height: parseFloat(data.height),
       weight: parseFloat(data.weight),
       priority: parseInt(data.priority) || 1, // Prioridad: 1 = Normal, 2 = Crítica
+      requires_pallet: data.requires_pallet || false, // Si requiere pallet
       image: data.image || null,
     }
 
@@ -136,21 +137,42 @@ function ProductForm() {
               )}
             </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Prioridad
-              </label>
-              <select
-                {...register('priority', { valueAsNumber: true })}
-                defaultValue={1}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              >
-                <option value={1}>Nivel 1 - Normal</option>
-                <option value={2}>Nivel 2 - Crítica (debe entrar sí o sí)</option>
-              </select>
-              <p className="text-xs text-gray-500 mt-1">
-                Las cajas de nivel 2 se priorizan y deben entrar antes que las de nivel 1
-              </p>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Prioridad
+                </label>
+                <select
+                  {...register('priority', { valueAsNumber: true })}
+                  defaultValue={1}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value={1}>Nivel 1 - Normal</option>
+                  <option value={2}>Nivel 2 - Crítica (debe entrar sí o sí)</option>
+                </select>
+                <p className="text-xs text-gray-500 mt-1">
+                  Las cajas de nivel 2 se priorizan y deben entrar antes que las de nivel 1
+                </p>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Requiere Pallet
+                </label>
+                <div className="flex items-center mt-2">
+                  <input
+                    {...register('requires_pallet')}
+                    type="checkbox"
+                    className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                  />
+                  <span className="ml-2 text-sm text-gray-600">
+                    Este producto debe ir sobre un pallet
+                  </span>
+                </div>
+                <p className="text-xs text-gray-500 mt-1">
+                  El sistema creará un pallet automáticamente si es necesario
+                </p>
+              </div>
             </div>
 
             <div>
