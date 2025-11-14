@@ -27,16 +27,22 @@ function getItemColor(index) {
 }
 
 // Componente para una caja individual
-function Box({ position, dimensions, color, name, index, onClick, isPallet }) {
+function Box({ position, dimensions, color, name, index, onClick, isPallet, offset }) {
   const [x, y, z] = position
   const [length, height, width] = dimensions
+  const [offsetX, offsetY, offsetZ] = offset || [0, 0, 0]
+  
+  // Aplicar offset a la posición
+  const adjustedX = x + offsetX
+  const adjustedY = y + offsetY
+  const adjustedZ = z + offsetZ
   
   // Si es un pallet, usar estilo wireframe y color marrón
   if (isPallet) {
     return (
       <group>
         <mesh
-          position={[x + length / 2, y + height / 2, z + width / 2]}
+          position={[adjustedX + length / 2, adjustedY + height / 2, adjustedZ + width / 2]}
           onClick={onClick}
           onPointerOver={(e) => {
             e.stopPropagation()
@@ -57,16 +63,16 @@ function Box({ position, dimensions, color, name, index, onClick, isPallet }) {
         {/* Mostrar estructura del pallet con líneas */}
         <Line
           points={[
-            [x, y, z],
-            [x + length, y, z],
-            [x + length, y, z + width],
-            [x, y, z + width],
-            [x, y, z],
-            [x, y + height, z],
-            [x + length, y + height, z],
-            [x + length, y + height, z + width],
-            [x, y + height, z + width],
-            [x, y + height, z],
+            [adjustedX, adjustedY, adjustedZ],
+            [adjustedX + length, adjustedY, adjustedZ],
+            [adjustedX + length, adjustedY, adjustedZ + width],
+            [adjustedX, adjustedY, adjustedZ + width],
+            [adjustedX, adjustedY, adjustedZ],
+            [adjustedX, adjustedY + height, adjustedZ],
+            [adjustedX + length, adjustedY + height, adjustedZ],
+            [adjustedX + length, adjustedY + height, adjustedZ + width],
+            [adjustedX, adjustedY + height, adjustedZ + width],
+            [adjustedX, adjustedY + height, adjustedZ],
           ]}
           color="#654321"
           lineWidth={2}
@@ -77,7 +83,7 @@ function Box({ position, dimensions, color, name, index, onClick, isPallet }) {
   
   return (
     <mesh
-      position={[x + length / 2, y + height / 2, z + width / 2]}
+      position={[adjustedX + length / 2, adjustedY + height / 2, adjustedZ + width / 2]}
       onClick={onClick}
       onPointerOver={(e) => {
         e.stopPropagation()
@@ -94,21 +100,22 @@ function Box({ position, dimensions, color, name, index, onClick, isPallet }) {
 }
 
 // Componente para el contenedor (wireframe)
-function Container({ dimensions }) {
+function Container({ dimensions, offset }) {
   const [length, width, height] = dimensions
+  const [offsetX, offsetY, offsetZ] = offset || [0, 0, 0]
   
   // Crear las aristas del contenedor
   const edges = useMemo(() => {
     const edges = []
     const corners = [
-      [0, 0, 0],
-      [length, 0, 0],
-      [length, 0, width],
-      [0, 0, width],
-      [0, height, 0],
-      [length, height, 0],
-      [length, height, width],
-      [0, height, width],
+      [0 + offsetX, 0 + offsetY, 0 + offsetZ],
+      [length + offsetX, 0 + offsetY, 0 + offsetZ],
+      [length + offsetX, 0 + offsetY, width + offsetZ],
+      [0 + offsetX, 0 + offsetY, width + offsetZ],
+      [0 + offsetX, height + offsetY, 0 + offsetZ],
+      [length + offsetX, height + offsetY, 0 + offsetZ],
+      [length + offsetX, height + offsetY, width + offsetZ],
+      [0 + offsetX, height + offsetY, width + offsetZ],
     ]
     
     // Aristas inferiores
@@ -147,8 +154,9 @@ function Container({ dimensions }) {
 }
 
 // Componente para las reglas (rulers)
-function Rulers({ dimensions }) {
+function Rulers({ dimensions, offset }) {
   const [length, width, height] = dimensions
+  const [offsetX, offsetY, offsetZ] = offset || [0, 0, 0]
   const tickSize = 0.1
   const tickSpacing = 0.5
   
@@ -169,7 +177,7 @@ function Rulers({ dimensions }) {
   
   return (
     <group>
-      <group position={[-0.3, 0, 0]}>
+      <group position={[-0.3 + offsetX, offsetY, offsetZ]}>
         <Line
           points={[[0, 0, 0], [0, 0, length]]}
           color="black"
@@ -203,7 +211,7 @@ function Rulers({ dimensions }) {
         </Text>
       </group>
       
-      <group position={[0, 0, -0.3]}>
+      <group position={[offsetX, offsetY, -0.3 + offsetZ]}>
         <Line
           points={[[0, 0, 0], [width, 0, 0]]}
           color="black"
@@ -236,7 +244,7 @@ function Rulers({ dimensions }) {
         </Text>
       </group>
       
-      <group position={[-0.3, 0, -0.3]}>
+      <group position={[-0.3 + offsetX, offsetY, -0.3 + offsetZ]}>
         <Line
           points={[[0, 0, 0], [0, height, 0]]}
           color="black"
@@ -433,17 +441,6 @@ function Container3DView({ results }) {
   
   return (
     <div ref={containerRef} className="w-full h-full relative">
-      {/* Instrucciones de controles */}
-      <div className="absolute top-2 left-2 bg-black/70 text-white text-xs p-2 rounded z-10 pointer-events-none">
-        <div className="font-semibold mb-1">Controles de Cámara:</div>
-        <div>🖱️ Click + arrastrar: Rotar</div>
-        <div>🖱️ Click derecho + arrastrar: Desplazar</div>
-        <div>🖱️ Rueda: Zoom</div>
-        <div className="mt-1 font-semibold">Teclado (sobre el canvas):</div>
-        <div>WASD / ↑↓←→: Desplazar horizontal</div>
-        <div>Q/E / PgUp/PgDn: Subir/Bajar</div>
-      </div>
-      
       <Canvas
         camera={{ position: [15, 10, 15], fov: 50 }}
         style={{ width: '100%', height: '100%' }}
@@ -452,36 +449,48 @@ function Container3DView({ results }) {
         <directionalLight position={[10, 10, 5]} intensity={1} />
         <pointLight position={[-10, -10, -5]} intensity={0.5} />
         
-        <Container dimensions={containerDims} />
-        <Rulers dimensions={containerDims} />
-        
-        {results.items.map((item, index) => {
-          const isPallet = item.type === 'pallet' || item.name?.startsWith('Pallet_')
-          const color = isPallet ? '#8B4513' : getItemColor(index)
-          const position = item.position || [0, 0, 0]
-          const dimensions = item.dimensions || [1, 1, 1]
+        {/* Calcular offset para centrar horizontalmente y poner en el suelo */}
+        {(() => {
+          const [length, width, height] = containerDims
+          // Offset: centrar horizontalmente (X y Z), pero mantener en el suelo (Y = 0)
+          const offset = [-length / 2, 0, -width / 2]
           
           return (
-            <Box
-              key={index}
-              position={position}
-              dimensions={dimensions}
-              color={color}
-              name={item.name}
-              index={index}
-              isPallet={isPallet}
-              onClick={() => {
-                selectItem({
-                  id: index,
-                  name: item.name,
-                  color: color,
-                  realDimensions: dimensions,
-                  isPallet: isPallet
-                })
-              }}
-            />
+            <>
+              <Container dimensions={containerDims} offset={offset} />
+              <Rulers dimensions={containerDims} offset={offset} />
+              
+              {results.items.map((item, index) => {
+                const isPallet = item.type === 'pallet' || item.name?.startsWith('Pallet_')
+                const color = isPallet ? '#8B4513' : getItemColor(index)
+                const position = item.position || [0, 0, 0]
+                const dimensions = item.dimensions || [1, 1, 1]
+                
+                return (
+                  <Box
+                    key={index}
+                    position={position}
+                    dimensions={dimensions}
+                    color={color}
+                    name={item.name}
+                    index={index}
+                    isPallet={isPallet}
+                    offset={offset}
+                    onClick={() => {
+                      selectItem({
+                        id: index,
+                        name: item.name,
+                        color: color,
+                        realDimensions: dimensions,
+                        isPallet: isPallet
+                      })
+                    }}
+                  />
+                )
+              })}
+            </>
           )
-        })}
+        })()}
         
         <OrbitControls
           ref={controlsRef}

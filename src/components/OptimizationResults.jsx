@@ -287,8 +287,8 @@ function OptimizationResults() {
         
         {/* Panel de información de caja seleccionada */}
         {selectedItem && (
-          <div className="absolute top-16 right-4 bg-white rounded-lg shadow-xl p-4 border-2 border-yellow-400 max-w-xs z-10">
-            <div className="flex items-start justify-between mb-3">
+          <div className="absolute top-32 right-0 bg-white rounded-lg shadow-xl p-4 border-2 border-yellow-400 w-64 max-h-64 overflow-y-auto z-10">
+            <div className="flex items-start justify-between mb-3 sticky top-0 bg-white pb-2 border-b border-gray-200">
               <h4 className="text-lg font-bold text-gray-800">Caja Seleccionada</h4>
               <button
                 onClick={deselectItem}
@@ -298,7 +298,7 @@ function OptimizationResults() {
               </button>
             </div>
             
-            <div className="space-y-2">
+            <div className="space-y-2 pt-2">
               <div className="flex items-center gap-2">
                 <div 
                   className="w-6 h-6 rounded border-2 border-gray-300"
@@ -409,7 +409,7 @@ function OptimizationResults() {
           <h3 className="text-lg font-semibold mb-3 text-gray-800">
             Disposición de productos ({results.items.length})
           </h3>
-          <div className="space-y-2 max-h-64 overflow-y-auto">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 max-h-64 overflow-y-auto">
             {results.items.map((item, index) => {
               const itemColor = getItemColor(index)
               const isSelected = selectedItem?.name === item.name
