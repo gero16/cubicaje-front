@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useState } from 'react'
 import ProductForm from './components/ProductForm'
 import ContainerSelector from './components/ContainerSelector'
 import OptimizationResults from './components/OptimizationResults'
@@ -13,11 +13,11 @@ function App() {
     results, 
     error, 
     progress,
-    useMathematicalCalculator,
-    setUseMathematicalCalculator,
     fillFloorWithPallets,
     setFillFloorWithPallets
   } = useStore()
+  
+  const [isContainerExpanded, setIsContainerExpanded] = useState(false)
   
 
   const handleCalculate = async () => {
@@ -52,78 +52,62 @@ function App() {
             </div>
 
             <div className="bg-white rounded-lg shadow-lg p-6">
-              <h2 className="text-2xl font-semibold mb-4 text-gray-800">
-                Contenedor
-              </h2>
-              <ContainerSelector />
+              <button
+                onClick={() => setIsContainerExpanded(!isContainerExpanded)}
+                className="w-full flex items-center justify-between text-left mb-4"
+              >
+                <h2 className="text-2xl font-semibold text-gray-800">
+                  Contenedor
+                </h2>
+                <svg
+                  className={`w-6 h-6 text-gray-600 transition-transform duration-200 ${
+                    isContainerExpanded ? 'transform rotate-180' : ''
+                  }`}
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
+              </button>
+              {isContainerExpanded && (
+                <div className="transition-all duration-200">
+                  <ContainerSelector />
+                </div>
+              )}
             </div>
 
-            {/* Toggle para Calculador Matemático */}
+            {/* Opción para llenar piso con pallets */}
             <div className="bg-white rounded-lg shadow-lg p-6">
               <h2 className="text-2xl font-semibold mb-4 text-gray-800">
                 Opciones de Optimización
               </h2>
               <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg border border-gray-200">
                 <div className="flex-1">
-                  <label htmlFor="math-calculator" className="text-sm font-medium text-gray-700 cursor-pointer">
-                    🔢 Calculador Matemático <span className="text-xs text-green-600 font-semibold">(Por defecto)</span>
+                  <label htmlFor="fill-floor-pallets" className="text-sm font-medium text-gray-700 cursor-pointer">
+                    📦 Llenar Piso con Pallets
                   </label>
                   <p className="text-xs text-gray-500 mt-1">
-                    Algoritmo determinístico que calcula posiciones exactas mediante operaciones geométricas
+                    Coloca pallets estratégicamente en el piso (solo si hay productos que pueden ir sobre ellos)
                   </p>
                 </div>
                 <label className="relative inline-flex items-center cursor-pointer">
                   <input
                     type="checkbox"
-                    id="math-calculator"
-                    checked={useMathematicalCalculator}
-                    onChange={(e) => setUseMathematicalCalculator(e.target.checked)}
+                    id="fill-floor-pallets"
+                    checked={fillFloorWithPallets}
+                    onChange={(e) => setFillFloorWithPallets(e.target.checked)}
                     className="sr-only peer"
                     disabled={loading}
                   />
                   <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
                 </label>
               </div>
-              {useMathematicalCalculator ? (
-                <div className="mt-3 p-3 bg-green-50 border border-green-200 rounded-lg">
-                  <p className="text-xs text-green-800">
-                    <strong>✅ Modo Matemático Activo:</strong> El sistema calculará posiciones óptimas mediante operaciones geométricas exactas. 
-                    Método recomendado para mejores resultados.
-                  </p>
-                </div>
-              ) : (
-                <div className="mt-3 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
-                  <p className="text-xs text-yellow-800">
-                    <strong>⚠️ Modo Heurístico:</strong> Usando algoritmo heurístico (py3dbp). 
-                    Activa el calculador matemático para mejores resultados.
-                  </p>
-                </div>
-              )}
-              
-              {/* Toggle para llenar piso con pallets */}
-              {useMathematicalCalculator && (
-                <div className="mt-4 flex items-center justify-between p-4 bg-gray-50 rounded-lg border border-gray-200">
-                  <div className="flex-1">
-                    <label htmlFor="fill-floor-pallets" className="text-sm font-medium text-gray-700 cursor-pointer">
-                      📦 Llenar Piso con Pallets
-                    </label>
-                    <p className="text-xs text-gray-500 mt-1">
-                      Coloca pallets estratégicamente en el piso (solo si hay productos que pueden ir sobre ellos)
-                    </p>
-                  </div>
-                  <label className="relative inline-flex items-center cursor-pointer">
-                    <input
-                      type="checkbox"
-                      id="fill-floor-pallets"
-                      checked={fillFloorWithPallets}
-                      onChange={(e) => setFillFloorWithPallets(e.target.checked)}
-                      className="sr-only peer"
-                      disabled={loading}
-                    />
-                    <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
-                  </label>
-                </div>
-              )}
+              <div className="mt-3 p-3 bg-green-50 border border-green-200 rounded-lg">
+                <p className="text-xs text-green-800">
+                  <strong>✅ Calculador Matemático Activo:</strong> El sistema siempre usa el algoritmo determinístico que calcula posiciones exactas mediante operaciones geométricas.
+                </p>
+              </div>
             </div>
 
             <button

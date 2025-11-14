@@ -19,7 +19,6 @@ const useStore = create((set, get) => ({
   results: null,
   error: null,
   selectedItem: null, // Item seleccionado en el 3D
-  useMathematicalCalculator: true, // Toggle para usar calculador matemático (por defecto activado)
   fillFloorWithPallets: false, // Toggle para llenar el piso con pallets estratégicamente
   progress: {
     message: '',
@@ -64,11 +63,6 @@ const useStore = create((set, get) => ({
   // Seleccionar contenedor
   setSelectedContainer: (containerId) => {
     set({ selectedContainer: containerId })
-  },
-
-  // Toggle calculador matemático
-  setUseMathematicalCalculator: (value) => {
-    set({ useMathematicalCalculator: value })
   },
 
   // Toggle llenar piso con pallets
@@ -118,7 +112,9 @@ const useStore = create((set, get) => ({
 
   // Calcular optimización con progreso usando SSE
   calculateOptimization: async () => {
-    const { products, selectedContainer, useMathematicalCalculator, fillFloorWithPallets } = get()
+    const { products, selectedContainer, fillFloorWithPallets } = get()
+    // Siempre usar calculador matemático
+    const useMathematicalCalculator = true
     
     if (products.length === 0) {
       set({ error: 'Debes agregar al menos un producto' })
@@ -142,8 +138,11 @@ const useStore = create((set, get) => ({
 
     try {
       // Usar endpoint SSE para obtener progreso en tiempo real
-      // Usar ruta relativa para que el proxy de Vite lo maneje
-      const response = await fetch('/optimize-stream', {
+      // Usar la URL completa del API desde la variable de entorno
+      const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8001'
+      const optimizeUrl = `${apiUrl}/optimize-stream`
+      
+      const response = await fetch(optimizeUrl, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
