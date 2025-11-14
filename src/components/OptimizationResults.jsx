@@ -413,7 +413,7 @@ function OptimizationResults() {
             (Haz click en una caja para ver detalles)
           </span>
         </h3>
-        <Container3DView results={results} />
+        <Container3DView results={results} productsNotEntered={productsNotEnteredList} />
         
         {/* Panel de información de caja seleccionada */}
         {selectedItem && (

@@ -156,7 +156,7 @@ function Container({ dimensions, offset }) {
 function Rulers({ dimensions, offset }) {
   const [length, width, height] = dimensions
   const [offsetX, offsetY, offsetZ] = offset || [0, 0, 0]
-  const tickSize = 0.1
+  const tickSize = 0.15  // Aumentado de 0.1 a 0.15 para marcas más visibles
   const tickSpacing = 0.5
   
   const lengthTicks = []
@@ -176,102 +176,114 @@ function Rulers({ dimensions, offset }) {
   
   return (
     <group>
-      <group position={[-0.3 + offsetX, offsetY, offsetZ]}>
+      <group position={[-0.4 + offsetX, offsetY, offsetZ]}>
         <Line
           points={[[0, 0, 0], [0, 0, length]]}
-          color="black"
-          lineWidth={2}
+          color="#1a1a1a"
+          lineWidth={4}
         />
         {lengthTicks.map((tick) => (
           <group key={`length-${tick}`}>
             <Line
               points={[[0, 0, tick], [-tickSize, 0, tick]]}
-              color="black"
-              lineWidth={1.5}
+              color="#1a1a1a"
+              lineWidth={3}
             />
             <Text
-              position={[-tickSize - 0.1, 0, tick]}
-              fontSize={0.08}
-              color="black"
+              position={[-tickSize - 0.15, 0, tick]}
+              fontSize={0.15}
+              color="#1a1a1a"
               anchorX="right"
               anchorY="middle"
+              outlineWidth={0.02}
+              outlineColor="#ffffff"
             >
               {tick.toFixed(1)}m
             </Text>
           </group>
         ))}
         <Text
-          position={[-0.5, 0, length / 2]}
-          fontSize={0.12}
-          color="black"
+          position={[-0.7, 0, length / 2]}
+          fontSize={0.2}
+          color="#1a1a1a"
           rotation={[0, 0, Math.PI / 2]}
+          outlineWidth={0.03}
+          outlineColor="#ffffff"
         >
           Largo
         </Text>
       </group>
       
-      <group position={[offsetX, offsetY, -0.3 + offsetZ]}>
+      <group position={[offsetX, offsetY, -0.4 + offsetZ]}>
         <Line
           points={[[0, 0, 0], [width, 0, 0]]}
-          color="black"
-          lineWidth={2}
+          color="#1a1a1a"
+          lineWidth={4}
         />
         {widthTicks.map((tick) => (
           <group key={`width-${tick}`}>
             <Line
               points={[[tick, 0, 0], [tick, 0, -tickSize]]}
-              color="black"
-              lineWidth={1.5}
+              color="#1a1a1a"
+              lineWidth={3}
             />
             <Text
-              position={[tick, 0, -tickSize - 0.1]}
-              fontSize={0.08}
-              color="black"
+              position={[tick, 0, -tickSize - 0.15]}
+              fontSize={0.15}
+              color="#1a1a1a"
               anchorX="center"
               anchorY="top"
+              outlineWidth={0.02}
+              outlineColor="#ffffff"
             >
               {tick.toFixed(1)}m
             </Text>
           </group>
         ))}
         <Text
-          position={[width / 2, 0, -0.5]}
-          fontSize={0.12}
-          color="black"
+          position={[width / 2, 0, -0.7]}
+          fontSize={0.2}
+          color="#1a1a1a"
+          outlineWidth={0.03}
+          outlineColor="#ffffff"
         >
           Ancho
         </Text>
       </group>
       
-      <group position={[-0.3 + offsetX, offsetY, -0.3 + offsetZ]}>
+      <group position={[-0.4 + offsetX, offsetY, -0.4 + offsetZ]}>
         <Line
           points={[[0, 0, 0], [0, height, 0]]}
-          color="black"
-          lineWidth={2}
+          color="#1a1a1a"
+          lineWidth={4}
         />
         {heightTicks.map((tick) => (
           <group key={`height-${tick}`}>
             <Line
               points={[[0, tick, 0], [-tickSize, tick, 0]]}
-              color="black"
-              lineWidth={1.5}
+              color="#1a1a1a"
+              lineWidth={3}
             />
             <Text
-              position={[-tickSize - 0.1, tick, 0]}
-              fontSize={0.08}
-              color="black"
+              position={[-tickSize - 0.15, tick, 0]}
+              fontSize={0.15}
+              color="#1a1a1a"
               anchorX="right"
               anchorY="middle"
+              outlineWidth={0.02}
+              outlineColor="#ffffff"
             >
               {tick.toFixed(1)}m
             </Text>
           </group>
         ))}
         <Text
-          position={[-0.5, height / 2, 0]}
-          fontSize={0.12}
-          color="black"
+          position={[-0.7, height / 2, 0]}
+          fontSize={0.2}
+          color="#1a1a1a"
           rotation={[0, 0, Math.PI / 2]}
+          outlineWidth={0.03}
+          outlineColor="#ffffff"
         >
           Altura
         </Text>
@@ -280,11 +292,16 @@ function Rulers({ dimensions, offset }) {
   )
 }
 
-function Container3DView({ results }) {
+function Container3DView({ results, productsNotEntered = [] }) {
   const { selectItem, containers, selectedContainer } = useStore()
   const controlsRef = useRef()
   
-  if (!results || !results.items || results.items.length === 0) {
+  const container = containers.find(c => c.id === selectedContainer) || containers[1]
+  const containerDims = container 
+    ? [container.dimensions.length, container.dimensions.width, container.dimensions.height]
+    : [12.19, 2.44, 2.59]
+  
+  if ((!results || !results.items || results.items.length === 0) && productsNotEntered.length === 0) {
     return (
       <div className="flex items-center justify-center h-full text-gray-500">
         <p>No hay items para mostrar</p>
@@ -292,61 +309,160 @@ function Container3DView({ results }) {
     )
   }
   
-  const container = containers.find(c => c.id === selectedContainer) || containers[1]
-  const containerDims = container 
-    ? [container.dimensions.length, container.dimensions.width, container.dimensions.height]
-    : [12.19, 2.44, 2.59]
+  // Calcular offset para el contenedor principal
+  const [length, width, height] = containerDims
+  const containerOffset = [-length / 2, 0, -width / 2]
+  
+  // Calcular posición de cámara para ver tanto el contenedor como el área de exclusión
+  const hasExcludedProducts = productsNotEntered.length > 0
+  const cameraPosition = hasExcludedProducts 
+    ? [20, 12, 15] // Más alejada y alta para ver ambas áreas
+    : [15, 10, 15] // Posición normal si no hay productos excluidos
   
   return (
     <div className="w-full h-full relative">
       <Canvas
-        camera={{ position: [15, 10, 15], fov: 50 }}
+        camera={{ position: cameraPosition, fov: 50 }}
         style={{ width: '100%', height: '100%' }}
       >
         <ambientLight intensity={0.5} />
         <directionalLight position={[10, 10, 5]} intensity={1} />
         <pointLight position={[-10, -10, -5]} intensity={0.5} />
         
-        {/* Calcular offset para centrar horizontalmente y poner en el suelo */}
-        {(() => {
-          const [length, width, height] = containerDims
-          // Offset: centrar horizontalmente (X y Z), pero mantener en el suelo (Y = 0)
-          const offset = [-length / 2, 0, -width / 2]
+        {/* Contenedor principal con items que entraron */}
+        {results && results.items && results.items.length > 0 && (
+          <>
+            <Container dimensions={containerDims} offset={containerOffset} />
+            <Rulers dimensions={containerDims} offset={containerOffset} />
+            
+            {results.items.map((item, index) => {
+              const isPallet = item.type === 'pallet' || item.name?.startsWith('Pallet_')
+              const color = isPallet ? '#8B4513' : getItemColor(index)
+              const position = item.position || [0, 0, 0]
+              const dimensions = item.dimensions || [1, 1, 1]
+              
+              return (
+                <Box
+                  key={`entered-${index}`}
+                  position={position}
+                  dimensions={dimensions}
+                  color={color}
+                  name={item.name}
+                  index={index}
+                  isPallet={isPallet}
+                  offset={containerOffset}
+                  onClick={() => {
+                    selectItem({
+                      id: index,
+                      name: item.name,
+                      color: color,
+                      realDimensions: dimensions,
+                      isPallet: isPallet
+                    })
+                  }}
+                />
+              )
+            })}
+          </>
+        )}
+        
+        {/* Área de productos que no entraron */}
+        {productsNotEntered.length > 0 && (() => {
+          // Calcular área para productos excluidos (a la derecha del contenedor)
+          const excludedAreaWidth = Math.max(8, containerDims[0] * 0.8)
+          const excludedAreaDepth = Math.max(6, containerDims[2] * 0.8)
+          
+          // Calcular posición del área de exclusión (a la derecha del contenedor)
+          const excludedOffsetX = containerDims[0] / 2 + excludedAreaWidth / 2 + 3
+          const excludedOffsetY = 0
+          const excludedOffsetZ = -containerDims[2] / 2
+          
+          // Organizar productos en un grid
+          const itemsPerRow = Math.ceil(Math.sqrt(productsNotEntered.length))
+          const spacing = 0.8 // Espacio entre cajas
+          
+          // Calcular el tamaño máximo de caja para el espaciado
+          const maxBoxSize = Math.max(
+            ...productsNotEntered.map(p => Math.max(...p.dimensions))
+          )
           
           return (
-            <>
-              <Container dimensions={containerDims} offset={offset} />
-              <Rulers dimensions={containerDims} offset={offset} />
+            <group>
+              {/* Área visual delimitada para productos excluidos (rectángulo en el suelo) */}
+              <Line
+                points={[
+                  [excludedOffsetX - excludedAreaWidth / 2, excludedOffsetY, excludedOffsetZ - excludedAreaDepth / 2],
+                  [excludedOffsetX + excludedAreaWidth / 2, excludedOffsetY, excludedOffsetZ - excludedAreaDepth / 2],
+                  [excludedOffsetX + excludedAreaWidth / 2, excludedOffsetY, excludedOffsetZ + excludedAreaDepth / 2],
+                  [excludedOffsetX - excludedAreaWidth / 2, excludedOffsetY, excludedOffsetZ + excludedAreaDepth / 2],
+                  [excludedOffsetX - excludedAreaWidth / 2, excludedOffsetY, excludedOffsetZ - excludedAreaDepth / 2],
+                ]}
+                color="#ff6b6b"
+                lineWidth={3}
+              />
               
-              {results.items.map((item, index) => {
-                const isPallet = item.type === 'pallet' || item.name?.startsWith('Pallet_')
-                const color = isPallet ? '#8B4513' : getItemColor(index)
-                const position = item.position || [0, 0, 0]
-                const dimensions = item.dimensions || [1, 1, 1]
+              {/* Etiqueta del área */}
+              <Text
+                position={[excludedOffsetX, excludedOffsetY + 1.5, excludedOffsetZ]}
+                fontSize={0.2}
+                color="#ff6b6b"
+                anchorX="center"
+                anchorY="middle"
+              >
+                Productos Excluidos
+              </Text>
+              
+              {/* Renderizar productos excluidos */}
+              {productsNotEntered.map((product, index) => {
+                const row = Math.floor(index / itemsPerRow)
+                const col = index % itemsPerRow
+                
+                // Calcular posición dentro del área de exclusión
+                const totalWidth = itemsPerRow * (maxBoxSize + spacing) - spacing
+                const startX = excludedOffsetX - totalWidth / 2
+                const startZ = excludedOffsetZ - excludedAreaDepth / 2 + 1
+                
+                const [dimLength, dimHeight, dimWidth] = product.dimensions
+                const x = startX + col * (maxBoxSize + spacing) + dimLength / 2
+                const z = startZ + row * (maxBoxSize + spacing)
+                const y = excludedOffsetY + dimHeight / 2
+                
+                // Usar color rojo/naranja para indicar que no entró
+                const excludedColor = product.priority === 2 ? '#ff4444' : '#ff8800'
                 
                 return (
-                  <Box
-                    key={index}
-                    position={position}
-                    dimensions={dimensions}
-                    color={color}
-                    name={item.name}
-                    index={index}
-                    isPallet={isPallet}
-                    offset={offset}
+                  <mesh
+                    key={`excluded-${index}`}
+                    position={[x, y, z]}
                     onClick={() => {
                       selectItem({
-                        id: index,
-                        name: item.name,
-                        color: color,
-                        realDimensions: dimensions,
-                        isPallet: isPallet
+                        id: `excluded-${index}`,
+                        name: product.name,
+                        color: excludedColor,
+                        realDimensions: product.dimensions,
+                        isPallet: false,
+                        isExcluded: true
                       })
                     }}
-                  />
+                    onPointerOver={(e) => {
+                      e.stopPropagation()
+                      document.body.style.cursor = 'pointer'
+                    }}
+                    onPointerOut={(e) => {
+                      document.body.style.cursor = 'default'
+                    }}
+                  >
+                    <boxGeometry args={[dimLength, dimHeight, dimWidth]} />
+                    <meshStandardMaterial 
+                      color={excludedColor} 
+                      opacity={0.7} 
+                      transparent
+                      wireframe={false}
+                    />
+                  </mesh>
                 )
               })}
-            </>
+            </group>
           )
         })()}
         
@@ -367,7 +483,7 @@ function Container3DView({ results }) {
           }}
         />
         
-        <gridHelper args={[20, 20, '#888', '#ccc']} />
+        <gridHelper args={hasExcludedProducts ? [40, 40, '#888', '#ccc'] : [20, 20, '#888', '#ccc']} />
       </Canvas>
     </div>
   )
