@@ -6,7 +6,7 @@ const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8001'
 // Crear instancia de axios con timeout configurado globalmente
 const apiClient = axios.create({
   baseURL: API_URL,
-  timeout: 300000, // 5 minutos (300 segundos) para optimizaciones complejas
+  timeout: 600000, // 10 minutos (600 segundos) para optimizaciones complejas con muchos productos
   headers: {
     'Content-Type': 'application/json',
   },
@@ -19,6 +19,12 @@ const useStore = create((set, get) => ({
   results: null,
   error: null,
   selectedItem: null, // Item seleccionado en el 3D
+  useMathematicalCalculator: true, // Toggle para usar calculador matemático (por defecto activado)
+  progress: {
+    message: '',
+    percentage: 0,
+    step: null
+  },
 
   // Tipos de contenedores disponibles
   containers: [
@@ -57,6 +63,11 @@ const useStore = create((set, get) => ({
   // Seleccionar contenedor
   setSelectedContainer: (containerId) => {
     set({ selectedContainer: containerId })
+  },
+
+  // Toggle calculador matemático
+  setUseMathematicalCalculator: (value) => {
+    set({ useMathematicalCalculator: value })
   },
 
   // Validar que productos caben en contenedor
@@ -99,9 +110,9 @@ const useStore = create((set, get) => ({
     }
   },
 
-  // Calcular optimización
+  // Calcular optimización con progreso usando SSE
   calculateOptimization: async () => {
-    const { products, selectedContainer } = get()
+    const { products, selectedContainer, useMathematicalCalculator } = get()
     
     if (products.length === 0) {
       set({ error: 'Debes agregar al menos un producto' })
@@ -117,35 +128,236 @@ const useStore = create((set, get) => ({
       }
     }
 
-    set({ loading: true, error: null })
+    set({ 
+      loading: true, 
+      error: null,
+      progress: { message: 'Iniciando...', percentage: 0, step: null }
+    })
 
     try {
-      const response = await apiClient.post('/api/calculate', {
-        products: products.map(({ id, ...rest }) => ({
-          ...rest,
-          priority: rest.priority || 1, // Asegurar que siempre tenga prioridad (default 1)
-        })),
-        container: selectedContainer,
+      // Usar endpoint SSE para obtener progreso en tiempo real
+      // Usar ruta relativa para que el proxy de Vite lo maneje
+      const response = await fetch('/optimize-stream', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          products: products.map(({ id, length, width, height, weight, name, priority }) => ({
+            name: name,
+            dimensions: [length, width, height],
+            weight: weight,
+            priority: priority || 1,
+          })),
+          container: selectedContainer,
+          use_mathematical_calculator: useMathematicalCalculator,
+        }),
       })
 
-      set({ results: response.data, loading: false })
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`)
+      }
+
+      const reader = response.body.getReader()
+      const decoder = new TextDecoder()
+      let buffer = ''
+      let receivedComplete = false
+      let shouldExit = false
+
+      try {
+        while (true) {
+          const { done, value } = await reader.read()
+          
+          if (done) {
+            console.log('🔌 Conexión SSE cerrada. receivedComplete:', receivedComplete)
+            // Si la conexión se cerró pero recibimos complete, está bien
+            if (receivedComplete) {
+              console.log('✅ Conexión cerrada después de recibir complete')
+              break
+            }
+            // Si no recibimos complete, puede ser un error
+            const currentState = get()
+            console.error('❌ Conexión cerrada sin recibir complete. Estado actual:', {
+              loading: currentState.loading,
+              hasResults: !!currentState.results,
+              progress: currentState.progress
+            })
+            throw new Error('La conexión se cerró antes de completar la optimización')
+          }
+
+          buffer += decoder.decode(value, { stream: true })
+          const lines = buffer.split('\n\n')
+          buffer = lines.pop() || ''
+
+          for (const line of lines) {
+            if (line.trim() === '') continue
+            
+            if (line.startsWith('data: ')) {
+              try {
+                const jsonStr = line.slice(6)
+                // Log el JSON crudo para debugging
+                if (jsonStr.length > 200) {
+                  console.log('📦 JSON recibido (truncado):', jsonStr.substring(0, 200) + '...')
+                } else {
+                  console.log('📦 JSON recibido:', jsonStr)
+                }
+                
+                const data = JSON.parse(jsonStr)
+                
+                // Ignorar heartbeats en la UI (solo mantener conexión viva)
+                if (data.step === 'heartbeat') {
+                  continue
+                }
+                
+                // Log todos los eventos para debugging
+                console.log('📨 Evento SSE recibido:', {
+                  step: data.step,
+                  message: data.message?.substring(0, 50),
+                  percentage: data.percentage,
+                  hasResult: !!data.result,
+                  resultItems: data.result?.items?.length,
+                  hasDetails: !!data.details,
+                  allKeys: Object.keys(data)
+                })
+                
+                // Actualizar progreso
+                if (data.step && data.message) {
+                  set({
+                    progress: {
+                      message: data.message,
+                      percentage: data.percentage || 0,
+                      step: data.step
+                    }
+                  })
+                  
+                  // Si el mensaje dice "completada" pero no es el evento complete, podría ser un problema
+                  if (data.message.toLowerCase().includes('completada') && data.step !== 'complete') {
+                    console.warn('⚠️ Mensaje dice "completada" pero step no es "complete":', data.step)
+                  }
+                }
+
+                // Si es el evento de completado, procesar resultado
+                if (data.step === 'complete') {
+                  receivedComplete = true
+                  console.log('✅ Evento complete recibido:', data)
+                  
+                  if (data.result) {
+                    console.log('✅ Resultado recibido:', data.result)
+                    console.log('✅ Items en resultado:', data.result.items?.length)
+                    console.log('✅ Estructura del resultado:', Object.keys(data.result))
+                    
+                    // Verificar estructura del resultado antes de guardar
+                    if (!data.result || !data.result.items) {
+                      console.error('❌ Resultado inválido:', data.result)
+                      throw new Error('El resultado no tiene la estructura esperada')
+                    }
+                    
+                    console.log('💾 Guardando resultado con', data.result.items.length, 'items')
+                    
+                    // Actualizar estado con resultados - usar forma directa
+                    set({ 
+                      results: data.result, 
+                      loading: false,
+                      progress: { message: 'Completado', percentage: 100, step: 'complete' }
+                    })
+                    
+                    console.log('✅ Estado actualizado - verificando...')
+                    
+                    // Verificar inmediatamente después
+                    const verifyState = get()
+                    console.log('🔍 Verificación inmediata:', {
+                      hasResults: !!verifyState.results,
+                      resultsItems: verifyState.results?.items?.length,
+                      loading: verifyState.loading,
+                      resultsKeys: verifyState.results ? Object.keys(verifyState.results) : []
+                    })
+                    
+                    // Verificar después de un pequeño delay también
+                    setTimeout(() => {
+                      const currentState = get()
+                      console.log('🔍 Verificación después de 500ms:', {
+                        hasResults: !!currentState.results,
+                        resultsItems: currentState.results?.items?.length,
+                        loading: currentState.loading
+                      })
+                    }, 500)
+                    
+                    // IMPORTANTE: Marcar para salir del while también
+                    shouldExit = true
+                    break
+                  } else {
+                    // Si no hay resultado pero dice complete, esperar un poco más
+                    console.warn('⚠️ Evento complete recibido pero sin resultado, esperando...')
+                    console.warn('⚠️ Datos recibidos:', JSON.stringify(data, null, 2))
+                    // Esperar un poco más por si el resultado viene en el siguiente evento
+                    continue
+                  }
+                }
+
+                // Si hay error
+                if (data.step === 'error') {
+                  throw new Error(data.message || 'Error en la optimización')
+                }
+              } catch (e) {
+                // Si es error de parsing, solo loguear y continuar
+                if (e instanceof SyntaxError) {
+                  console.warn('Error parseando evento SSE (posible línea incompleta):', e.message)
+                  continue
+                }
+                // Si es otro error, lanzarlo
+                throw e
+              }
+            }
+          }
+          
+          // Salir del while si se procesó el evento complete con resultado
+          if (shouldExit) {
+            console.log('🚪 Saliendo del loop SSE después de recibir resultado')
+            break
+          }
+        }
+      } finally {
+        reader.releaseLock()
+      }
+
+      // Si llegamos aquí sin recibir el evento 'complete', algo salió mal
+      if (!receivedComplete) {
+        console.error('ERROR: No se recibió evento complete. Estado actual:', {
+          loading: get().loading,
+          results: get().results,
+          progress: get().progress
+        })
+        // Asegurar que loading se ponga en false incluso si hay error
+        set({ 
+          loading: false,
+          error: 'La conexión se cerró antes de completar la optimización'
+        })
+        throw new Error('La conexión se cerró antes de completar la optimización')
+      }
+      
     } catch (error) {
       console.error('Error al calcular optimización:', error)
+      console.error('Estado en catch:', {
+        loading: get().loading,
+        results: get().results,
+        error: get().error
+      })
       
       // Detectar timeout específicamente
-      if (error.code === 'ECONNABORTED' || error.message?.includes('timeout')) {
+      if (error.name === 'AbortError' || error.message?.includes('timeout')) {
         set({
           error: '⏱️ La optimización está tomando más tiempo del esperado. Esto puede ocurrir con muchos productos o configuraciones complejas. Por favor, intenta de nuevo o reduce el número de productos.',
           loading: false,
+          progress: { message: '', percentage: 0, step: null }
         })
         return
       }
       
-      // FastAPI devuelve 'detail', Express puede devolver 'message' o 'detail'
-      const errorMessage = error.response?.data?.detail || error.response?.data?.message || error.message || 'Error al calcular la optimización'
+      const errorMessage = error.message || 'Error al calcular la optimización'
       set({
         error: errorMessage,
         loading: false,
+        progress: { message: '', percentage: 0, step: null }
       })
     }
   },

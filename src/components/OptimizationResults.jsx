@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { useStore } from '../store/store'
 import Container3DView from './Container3DView'
 
@@ -47,10 +48,14 @@ function getItemColor(index) {
 
 function OptimizationResults() {
   const { results, selectedItem, deselectItem } = useStore()
+  const [showStrategyInfo, setShowStrategyInfo] = useState(false)
 
-  if (!results) return null
+  if (!results) {
+    return null
+  }
 
   const totalWeight = results.items?.reduce((sum, item) => sum + (item.weight || 0), 0) || 0
+  const strategyInfo = results.strategy_info
 
   return (
     <div className="space-y-6">
@@ -163,8 +168,93 @@ function OptimizationResults() {
         </div>
       </div>
 
-      {/* Información del algoritmo */}
-      {results.strategy_used && (
+      {/* Información detallada de estrategias (solo para calculador matemático) */}
+      {strategyInfo && (
+        <div className="bg-gradient-to-r from-indigo-50 to-purple-50 rounded-lg border border-indigo-200 p-4">
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="text-lg font-semibold text-gray-800">
+              📊 Análisis de Estrategias de Optimización
+            </h3>
+            <button
+              onClick={() => setShowStrategyInfo(!showStrategyInfo)}
+              className="text-sm text-indigo-600 hover:text-indigo-800 font-medium"
+            >
+              {showStrategyInfo ? '▼ Ocultar detalles' : '▶ Ver detalles'}
+            </button>
+          </div>
+          
+          {/* Resumen de la mejor estrategia */}
+          <div className="bg-white rounded-lg p-4 mb-3 border-l-4 border-green-500">
+            <div className="flex items-start">
+              <span className="text-2xl mr-3">🏆</span>
+              <div className="flex-1">
+                <p className="font-semibold text-gray-800 mb-1">
+                  Estrategia Elegida: {strategyInfo.best_strategy_description}
+                </p>
+                <p className="text-sm text-gray-600 mb-2">
+                  {strategyInfo.reasoning}
+                </p>
+                <div className="flex items-center gap-4 text-sm">
+                  <span className="text-gray-600">
+                    <span className="font-semibold">Eficiencia:</span> {strategyInfo.best_efficiency?.toFixed(1)}%
+                  </span>
+                  <span className="text-gray-600">
+                    <span className="font-semibold">Estrategias probadas:</span> {strategyInfo.total_strategies}
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Detalles de todas las estrategias probadas */}
+          {showStrategyInfo && strategyInfo.strategies_tested && (
+            <div className="space-y-2">
+              <h4 className="text-sm font-semibold text-gray-700 mb-2">
+                Comparación de Estrategias Probadas:
+              </h4>
+              {strategyInfo.strategies_tested.map((strategy, index) => (
+                <div
+                  key={index}
+                  className={`p-3 rounded-lg border ${
+                    strategy.was_best
+                      ? 'bg-green-50 border-green-300'
+                      : 'bg-gray-50 border-gray-200'
+                  }`}
+                >
+                  <div className="flex items-center justify-between">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2">
+                        {strategy.was_best && (
+                          <span className="text-green-600 font-bold">✓</span>
+                        )}
+                        <span className={`font-medium ${strategy.was_best ? 'text-green-800' : 'text-gray-700'}`}>
+                          {strategy.description}
+                        </span>
+                      </div>
+                      <div className="mt-1 flex items-center gap-4 text-xs text-gray-600">
+                        <span>
+                          <span className="font-semibold">Eficiencia:</span> {strategy.efficiency?.toFixed(1)}%
+                        </span>
+                        <span>
+                          <span className="font-semibold">Items colocados:</span> {strategy.items_placed} / {strategy.total_items}
+                        </span>
+                        {strategy.was_best && (
+                          <span className="px-2 py-0.5 bg-green-200 text-green-800 rounded text-xs font-semibold">
+                            MEJOR
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Información del algoritmo (para método heurístico) */}
+      {!strategyInfo && results.strategy_used && (
         <div className="bg-indigo-50 p-3 rounded-lg border-l-4 border-indigo-500">
           <p className="text-sm text-gray-700">
             <span className="font-semibold">Estrategia de optimización:</span>{' '}
@@ -175,7 +265,8 @@ function OptimizationResults() {
               {results.strategy_used === 'area_superficie_desc' && 'Área de superficie descendente'}
               {results.strategy_used === 'altura_desc' && 'Altura descendente'}
               {results.strategy_used === 'default' && 'Estrategia por defecto'}
-              {!['volumen_desc', 'volumen_asc', 'peso_desc', 'area_superficie_desc', 'altura_desc', 'default'].includes(results.strategy_used) && results.strategy_used}
+              {results.strategy_used === 'mathematical_calculator' && 'Calculador Matemático'}
+              {!['volumen_desc', 'volumen_asc', 'peso_desc', 'area_superficie_desc', 'altura_desc', 'default', 'mathematical_calculator'].includes(results.strategy_used) && results.strategy_used}
             </span>
           </p>
           <p className="text-xs text-gray-600 mt-1">

@@ -560,6 +560,180 @@ const PRESETS = {
       { name: 'Y40', length: 1, width: 1, height: 1, weight: 10, priority: 1 },
     ]
   },
+  'formas-variadas-altas': {
+    name: 'Formas Variadas - Altas y Estrechas',
+    description: 'Cajas muy altas y poco anchas que pueden encajar en espacios verticales',
+    container: '40ft',
+    products: [
+      // Cajas muy altas y estrechas (tipo columnas)
+      { name: 'Columna A1', length: 0.4, width: 0.4, height: 2.5, weight: 15 },
+      { name: 'Columna A2', length: 0.4, width: 0.4, height: 2.5, weight: 15 },
+      { name: 'Columna A3', length: 0.4, width: 0.4, height: 2.5, weight: 15 },
+      { name: 'Columna B1', length: 0.5, width: 0.5, height: 2.4, weight: 18 },
+      { name: 'Columna B2', length: 0.5, width: 0.5, height: 2.4, weight: 18 },
+      { name: 'Columna B3', length: 0.5, width: 0.5, height: 2.4, weight: 18 },
+      { name: 'Columna C1', length: 0.6, width: 0.3, height: 2.3, weight: 12 },
+      { name: 'Columna C2', length: 0.6, width: 0.3, height: 2.3, weight: 12 },
+      { name: 'Columna C3', length: 0.3, width: 0.6, height: 2.3, weight: 12 },
+      { name: 'Columna C4', length: 0.3, width: 0.6, height: 2.3, weight: 12 },
+      // Cajas altas medianas
+      { name: 'Alta D1', length: 0.8, width: 0.5, height: 2.0, weight: 20 },
+      { name: 'Alta D2', length: 0.8, width: 0.5, height: 2.0, weight: 20 },
+      { name: 'Alta E1', length: 0.5, width: 0.8, height: 2.0, weight: 20 },
+      { name: 'Alta E2', length: 0.5, width: 0.8, height: 2.0, weight: 20 },
+      // Cajas altas más anchas pero aún altas
+      { name: 'Alta F1', length: 1.0, width: 0.6, height: 1.8, weight: 25 },
+      { name: 'Alta F2', length: 1.0, width: 0.6, height: 1.8, weight: 25 },
+      { name: 'Alta G1', length: 0.6, width: 1.0, height: 1.8, weight: 25 },
+      { name: 'Alta G2', length: 0.6, width: 1.0, height: 1.8, weight: 25 },
+    ]
+  },
+  'formas-variadas-anchas': {
+    name: 'Formas Variadas - Anchas y Bajas',
+    description: 'Cajas muy anchas y poco altas que pueden aprovechar espacios horizontales',
+    container: '40ft',
+    products: [
+      // Cajas muy anchas y bajas (tipo planchas)
+      { name: 'Placa H1', length: 2.0, width: 2.0, height: 0.3, weight: 20 },
+      { name: 'Placa H2', length: 2.0, width: 2.0, height: 0.3, weight: 20 },
+      { name: 'Placa I1', length: 2.4, width: 1.5, height: 0.4, weight: 25 },
+      { name: 'Placa I2', length: 2.4, width: 1.5, height: 0.4, weight: 25 },
+      { name: 'Placa J1', length: 1.5, width: 2.4, height: 0.4, weight: 25 },
+      { name: 'Placa J2', length: 1.5, width: 2.4, height: 0.4, weight: 25 },
+      // Cajas anchas medianas
+      { name: 'Ancha K1', length: 3.0, width: 1.0, height: 0.5, weight: 30 },
+      { name: 'Ancha K2', length: 3.0, width: 1.0, height: 0.5, weight: 30 },
+      { name: 'Ancha L1', length: 1.0, width: 3.0, height: 0.5, weight: 30 },
+      { name: 'Ancha L2', length: 1.0, width: 3.0, height: 0.5, weight: 30 },
+      // Cajas muy largas y estrechas
+      { name: 'Larga M1', length: 4.0, width: 0.5, height: 0.6, weight: 35 },
+      { name: 'Larga M2', length: 4.0, width: 0.5, height: 0.6, weight: 35 },
+      { name: 'Larga N1', length: 0.5, width: 4.0, height: 0.6, weight: 35 },
+      { name: 'Larga N2', length: 0.5, width: 4.0, height: 0.6, weight: 35 },
+      // Cajas anchas pero más altas
+      { name: 'Ancha-Alta O1', length: 2.0, width: 1.5, height: 0.8, weight: 40 },
+      { name: 'Ancha-Alta O2', length: 2.0, width: 1.5, height: 0.8, weight: 40 },
+      { name: 'Ancha-Alta P1', length: 1.5, width: 2.0, height: 0.8, weight: 40 },
+      { name: 'Ancha-Alta P2', length: 1.5, width: 2.0, height: 0.8, weight: 40 },
+    ]
+  },
+  'formas-extremas': {
+    name: 'Formas Extremas - Casos Límite',
+    description: 'Cajas con formas muy particulares para probar casos límite del algoritmo',
+    container: '40ft',
+    products: [
+      // Extremadamente altas y estrechas
+      { name: 'Torre 1', length: 0.3, width: 0.3, height: 2.5, weight: 10 },
+      { name: 'Torre 2', length: 0.3, width: 0.3, height: 2.5, weight: 10 },
+      { name: 'Torre 3', length: 0.35, width: 0.25, height: 2.4, weight: 8 },
+      { name: 'Torre 4', length: 0.25, width: 0.35, height: 2.4, weight: 8 },
+      // Extremadamente anchas y bajas
+      { name: 'Placa Extrema 1', length: 2.4, width: 2.4, height: 0.2, weight: 30 },
+      { name: 'Placa Extrema 2', length: 2.4, width: 2.4, height: 0.2, weight: 30 },
+      { name: 'Placa Extrema 3', length: 3.0, width: 1.8, height: 0.25, weight: 35 },
+      { name: 'Placa Extrema 4', length: 1.8, width: 3.0, height: 0.25, weight: 35 },
+      // Muy largas en una dimensión
+      { name: 'Viga 1', length: 5.0, width: 0.4, height: 0.4, weight: 40 },
+      { name: 'Viga 2', length: 5.0, width: 0.4, height: 0.4, weight: 40 },
+      { name: 'Viga 3', length: 0.4, width: 5.0, height: 0.4, weight: 40 },
+      { name: 'Viga 4', length: 0.4, width: 5.0, height: 0.4, weight: 40 },
+      // Formas intermedias interesantes
+      { name: 'Intermedia 1', length: 1.5, width: 0.4, height: 1.8, weight: 22 },
+      { name: 'Intermedia 2', length: 0.4, width: 1.5, height: 1.8, weight: 22 },
+      { name: 'Intermedia 3', length: 2.0, width: 0.6, height: 1.5, weight: 28 },
+      { name: 'Intermedia 4', length: 0.6, width: 2.0, height: 1.5, weight: 28 },
+      // Cajas que pueden rotarse para aprovechar espacios
+      { name: 'Rotable 1', length: 1.8, width: 0.5, height: 1.2, weight: 20 },
+      { name: 'Rotable 2', length: 1.8, width: 0.5, height: 1.2, weight: 20 },
+      { name: 'Rotable 3', length: 0.5, width: 1.8, height: 1.2, weight: 20 },
+      { name: 'Rotable 4', length: 0.5, width: 1.8, height: 1.2, weight: 20 },
+    ]
+  },
+  'mezcla-formas-compleja': {
+    name: 'Mezcla Compleja de Formas',
+    description: 'Combinación de cajas grandes, medianas, chicas, altas, anchas, largas - desafío completo',
+    container: '40ft',
+    products: [
+      // Grandes variadas
+      { name: 'Grande 1', length: 2.0, width: 2.0, height: 1.5, weight: 50 },
+      { name: 'Grande 2', length: 2.0, width: 1.5, height: 2.0, weight: 50 },
+      { name: 'Grande 3', length: 1.5, width: 2.0, height: 2.0, weight: 50 },
+      // Medianas variadas
+      { name: 'Mediana 1', length: 1.5, width: 1.5, height: 1.0, weight: 30 },
+      { name: 'Mediana 2', length: 1.5, width: 1.0, height: 1.5, weight: 30 },
+      { name: 'Mediana 3', length: 1.0, width: 1.5, height: 1.5, weight: 30 },
+      { name: 'Mediana 4', length: 1.2, width: 1.2, height: 1.2, weight: 25 },
+      { name: 'Mediana 5', length: 1.2, width: 1.2, height: 1.2, weight: 25 },
+      // Chicas variadas
+      { name: 'Chica 1', length: 0.8, width: 0.8, height: 0.8, weight: 10 },
+      { name: 'Chica 2', length: 0.8, width: 0.8, height: 0.8, weight: 10 },
+      { name: 'Chica 3', length: 0.6, width: 0.6, height: 0.6, weight: 8 },
+      { name: 'Chica 4', length: 0.6, width: 0.6, height: 0.6, weight: 8 },
+      // Altas y estrechas
+      { name: 'Alta-Estrecha 1', length: 0.4, width: 0.4, height: 2.3, weight: 12 },
+      { name: 'Alta-Estrecha 2', length: 0.5, width: 0.5, height: 2.2, weight: 15 },
+      { name: 'Alta-Estrecha 3', length: 0.6, width: 0.3, height: 2.0, weight: 10 },
+      { name: 'Alta-Estrecha 4', length: 0.3, width: 0.6, height: 2.0, weight: 10 },
+      // Anchas y bajas
+      { name: 'Ancha-Baja 1', length: 2.0, width: 2.0, height: 0.4, weight: 30 },
+      { name: 'Ancha-Baja 2', length: 2.4, width: 1.5, height: 0.5, weight: 35 },
+      { name: 'Ancha-Baja 3', length: 1.5, width: 2.4, height: 0.5, weight: 35 },
+      // Largas en una dimensión
+      { name: 'Larga 1', length: 3.0, width: 0.5, height: 0.8, weight: 40 },
+      { name: 'Larga 2', length: 0.5, width: 3.0, height: 0.8, weight: 40 },
+      { name: 'Larga 3', length: 4.0, width: 0.4, height: 0.6, weight: 35 },
+      { name: 'Larga 4', length: 0.4, width: 4.0, height: 0.6, weight: 35 },
+      // Formas intermedias interesantes
+      { name: 'Intermedia A1', length: 1.8, width: 0.6, height: 1.5, weight: 28 },
+      { name: 'Intermedia A2', length: 0.6, width: 1.8, height: 1.5, weight: 28 },
+      { name: 'Intermedia B1', length: 1.5, width: 0.8, height: 1.8, weight: 30 },
+      { name: 'Intermedia B2', length: 0.8, width: 1.5, height: 1.8, weight: 30 },
+      // Cajas que pueden aprovechar espacios pequeños
+      { name: 'Compacta 1', length: 0.5, width: 0.5, height: 1.5, weight: 8 },
+      { name: 'Compacta 2', length: 0.5, width: 0.5, height: 1.5, weight: 8 },
+      { name: 'Compacta 3', length: 0.4, width: 0.4, height: 1.2, weight: 6 },
+      { name: 'Compacta 4', length: 0.4, width: 0.4, height: 1.2, weight: 6 },
+    ]
+  },
+  'desafio-formas-particulares': {
+    name: 'Desafío - Formas Particulares',
+    description: 'Cajas con formas muy específicas que requieren aprovechamiento inteligente de espacios',
+    container: '40ft',
+    products: [
+      // Columnas muy estrechas que pueden llenar espacios verticales
+      { name: 'Columna Estrecha 1', length: 0.3, width: 0.3, height: 2.5, weight: 8 },
+      { name: 'Columna Estrecha 2', length: 0.3, width: 0.3, height: 2.5, weight: 8 },
+      { name: 'Columna Estrecha 3', length: 0.35, width: 0.25, height: 2.4, weight: 7 },
+      { name: 'Columna Estrecha 4', length: 0.25, width: 0.35, height: 2.4, weight: 7 },
+      { name: 'Columna Estrecha 5', length: 0.4, width: 0.3, height: 2.3, weight: 10 },
+      { name: 'Columna Estrecha 6', length: 0.3, width: 0.4, height: 2.3, weight: 10 },
+      // Planchas muy anchas que pueden aprovechar espacios horizontales
+      { name: 'Plancha Ancha 1', length: 2.4, width: 2.0, height: 0.3, weight: 40 },
+      { name: 'Plancha Ancha 2', length: 2.0, width: 2.4, height: 0.3, weight: 40 },
+      { name: 'Plancha Ancha 3', length: 3.0, width: 1.5, height: 0.35, weight: 45 },
+      { name: 'Plancha Ancha 4', length: 1.5, width: 3.0, height: 0.35, weight: 45 },
+      { name: 'Plancha Ancha 5', length: 2.2, width: 2.2, height: 0.4, weight: 50 },
+      // Vigas muy largas
+      { name: 'Viga Larga 1', length: 5.0, width: 0.4, height: 0.4, weight: 45 },
+      { name: 'Viga Larga 2', length: 0.4, width: 5.0, height: 0.4, weight: 45 },
+      { name: 'Viga Larga 3', length: 4.5, width: 0.5, height: 0.5, weight: 50 },
+      { name: 'Viga Larga 4', length: 0.5, width: 4.5, height: 0.5, weight: 50 },
+      // Cajas intermedias con formas interesantes
+      { name: 'Forma Interesante 1', length: 1.8, width: 0.5, height: 1.5, weight: 25 },
+      { name: 'Forma Interesante 2', length: 0.5, width: 1.8, height: 1.5, weight: 25 },
+      { name: 'Forma Interesante 3', length: 1.5, width: 0.6, height: 1.8, weight: 28 },
+      { name: 'Forma Interesante 4', length: 0.6, width: 1.5, height: 1.8, weight: 28 },
+      { name: 'Forma Interesante 5', length: 2.0, width: 0.8, height: 1.2, weight: 32 },
+      { name: 'Forma Interesante 6', length: 0.8, width: 2.0, height: 1.2, weight: 32 },
+      // Cajas pequeñas que pueden llenar huecos
+      { name: 'Relleno 1', length: 0.5, width: 0.5, height: 1.0, weight: 5 },
+      { name: 'Relleno 2', length: 0.5, width: 0.5, height: 1.0, weight: 5 },
+      { name: 'Relleno 3', length: 0.4, width: 0.4, height: 0.8, weight: 4 },
+      { name: 'Relleno 4', length: 0.4, width: 0.4, height: 0.8, weight: 4 },
+      { name: 'Relleno 5', length: 0.6, width: 0.3, height: 1.2, weight: 6 },
+      { name: 'Relleno 6', length: 0.3, width: 0.6, height: 1.2, weight: 6 },
+    ]
+  },
 }
 
 function PresetSelector() {
